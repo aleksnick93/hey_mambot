@@ -73,18 +73,18 @@ async function createTables(db) {
 
 async function addProject(db, title, refLink, img) {
   let
-      titleShort = title.split(' ',1),
-      link = refLink.split('?',1),
-      refKeyFull = refLink.split('?',2),
-      refKey = refKeyFull.split('=',1),
-      refId = refKeyFull.split('=',2)
+      titleShort = title.split(' ')[0],
+      link = refLink.split('?')[0],
+      refKeyFull = refLink.split('?')[1],
+      refKey = refKeyFull.split('=')[0],
+      refId = refKeyFull.split('=')[1]
   img = img ?? ''
   await db.run(`INSERT INTO projects (title, title_short, link, ref_key, ref_id, img) VALUES (?, ?, ?, ?, ?, ?) 
     ON CONFLICT(id) DO UPDATE SET sort = sort + 1`, [title, titleShort, link, refKey, refId, img])
 }
 
 async function getProjects(db) {
-  await db.get(`SELECT p.id, p.title, p.title_short, p.link, (p.link || '?' || p.ref_key || '=' || p.ref_id) AS full_link 
+  return await db.all(`SELECT p.id, p.title, p.title_short, p.link, (p.link || '?' || p.ref_key || '=' || p.ref_id) AS full_link 
                 FROM projects p 
                 ORDER BY p.sort, p.id`)
 }

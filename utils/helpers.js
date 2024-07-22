@@ -1,4 +1,4 @@
-const { Keyboard } = require('grammy')
+const { InlineKeyboard} = require('grammy')
 
 // Функция для обновления данных о пользователе
 async function updateUserData(db, userId) {
@@ -17,22 +17,28 @@ function isAdmin(userId, adminId) {
 }
 
 // Функция для создания клавиатуры с кнопками и кнопкой "Назад"
-function createKeyboard(items, type) {
-  const keyboard = new Keyboard()
+function createKeyboard(items, type, isAdmin) {
+  const keyboard = new InlineKeyboard()
   const buttonCount = items.length
 
+  console.log(items, buttonCount)
   for (let idx = 0; idx < buttonCount; idx++) {
     if (type === 'projects') {
-      keyboard.webApp(items[idx].title_short + ` 🗗`, items[idx].full_link)
+      keyboard.url(items[idx].title, items[idx].full_link)
     } else {
-      keyboard.text(items[idx].title)
+      keyboard.text(items[idx].title, items[idx].sys_name)
     }
 
-    if (buttonCount % 3 === 0) keyboard.row()
+    if (idx % 3 === 0) keyboard.row()
   }
-
-  keyboard.text('Назад ↩️')
-  return keyboard
+  keyboard.row()
+  if (isAdmin) {
+    if (type === 'projects') {
+      keyboard.text('Добавить проект', 'add_project').row()
+    }
+  }
+  keyboard.text('Назад ↩️', 'menu')
+  return keyboard;
 }
 
 // Функция для получения статистики использования бота
