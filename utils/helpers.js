@@ -1,9 +1,16 @@
 const { InlineKeyboard} = require('grammy')
 
-// Функция для обновления данных о пользователе
-async function updateUserData(db, userId) {
-  await db.run(`INSERT INTO users (id, run_count) VALUES (?, 1)
-    ON CONFLICT(id) DO UPDATE SET run_count = run_count + 1`, [userId])
+async function insertUser(db, userId, username, firstName, language, isBot, isPremium) {
+  await db.run(`INSERT OR IGNORE INTO users (id, username, first_name, language_code, is_bot, is_premium) VALUES (?, ?, ?, ?, ?, ?)`,
+      [userId, username, firstName, language, isBot, isPremium])
+}
+
+async function updateUser(db, userId, username, initMessageId) {
+  await db.run(`UPDATE users SET run_count = run_count + 1, username = ?, init_message_id = ? WHERE id = ?`, [username, initMessageId, userId])
+}
+
+async function getInitMessageId(db, userId) {
+  return await db.get(`SELECT init_message_id FROM users WHERE id=?`, [userId])
 }
 
 // Функция для записи взаимодействия пользователя
@@ -41,12 +48,10 @@ function createKeyboard(items, type, isAdmin) {
   return keyboard;
 }
 
-async function erasePrevMessages(ctx, messageCount = 1, messageStartId = 1) {
-  console.log(ctx)
+async function erasePrevMessages(ctx, messageStartId = 1) {
+  // console.log(ctx)
   let lastCtx = await ctx.reply('deleting');
-  for(let removeCount = 0, idx = lastCtx.message_id;
-      removeCount <= messageCount + 1 && idx > messageStartId;
-      idx--, removeCount++) {
+  for(let idx = lastCtx.message_id; idx > messageStartId; idx--) {
     console.log(`chat_id: ${ctx.chat.id}, message_id: ${idx}`);
     try {
       await ctx.api.deleteMessage(ctx.chat.id, idx);
@@ -89,4 +94,4 @@ async function getMessages(db, replied = null) {
   return await db.all(query, replied !== null ? [replied] : [])
 }
 
-module.exports = { updateUserData, getInitMessageId, recordUserInteraction, isAdmin, createKeyboard, erasePrevMessages, getUsageStats, getMessages}
+module.exports = { insertUser, updateUser, getInitMessageId, recordUserInteraction, isAdmin, createKeyboard, erasePrevMessages, getUsageStats, getMessages}

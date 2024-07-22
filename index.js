@@ -1,7 +1,7 @@
 require('dotenv').config()
 const fs = require('fs')
 const path = require('path')
-const { Bot, GrammyError, HttpError, Keyboard, InlineKeyboard, session } = require('grammy')
+const { Bot, GrammyError, HttpError, InlineKeyboard, session } = require('grammy')
 const {
     conversations,
     createConversation,
@@ -10,7 +10,9 @@ const sqlite3 = require('sqlite3').verbose()
 const { open } = require('sqlite')
 const { createTables, getProjects, recordProjectRequest, addProject} = require("./db")
 const { logger } = require('./utils/logger')
-const { updateUserData, recordUserInteraction, isAdmin, createKeyboard, getUsageStats, getMessages, erasePrevMessages} = require('./utils/helpers')
+const { insertUser, updateUser, recordUserInteraction, isAdmin,
+        createKeyboard, getUsageStats, getMessages, erasePrevMessages
+} = require('./utils/helpers')
 
 const bot = new Bot(process.env.BOT_API_KEY),
       debugMode = process.env.DEBUG_MODE
@@ -22,8 +24,6 @@ bot.use(conversations());
 
 bot.api.setMyCommands([
     {command: 'start', description: 'Добро пожаловать!'},
-    {command: 'menu', description: 'Меню'},
-    {command: 'info', description: 'Инфо'},
     {command: 'cancel', description: 'Отменить процесс'}
 ]);
 
@@ -35,7 +35,7 @@ const startKeyboard = new InlineKeyboard()
     .text('Очистить чат [DEBUG]', 'clear_chat')
     .row()
 
-let db
+let db,initMessageId
 (async () => {
     const dbPath = './data/hey_mambot.db'
 
@@ -54,24 +54,19 @@ let db
 })()
 
 bot.command('start', async (ctx) => {
-    logger.info(`User ${ctx.from.id} started the bot`)
-    await updateUserData(db, ctx.from.id)
-    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_047.webp?v=1693991402')
+    console.log(ctx.from)
+    // logger.info(`User ${ctx.from.id} started the bot`)
+    await insertUser(db, ctx.from.id, ctx.from.username, ctx.from.first_name, ctx.from.language_code, ctx.from.is_bot, ctx.from.is_premium)
     await ctx.reply('Buenos dias, amigo! Я - авторский бот для упрощения жизни будущих криптомиллионеров')
-    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
     await ctx.reply('📲 Тапалки - коллекция приложений с листингом или эйрдропом')
     await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
     await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
-    await ctx.reply('👇', {
+    let initMsg = await ctx.reply('👇', {
         reply_markup: startKeyboard,
     })
-})
 
-bot.command('info', async (ctx) => {
-    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
-    await ctx.reply('📲 Тапалки - коллекция криптоигр с листингом или эйрдропом')
-    await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
-    await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
+    initMessageId = initMsg.message_id
+    await updateUser(db, ctx.from.id, ctx.from.username, initMessageId)
 })
 
 bot.command('admin', async (ctx) => {
@@ -113,14 +108,14 @@ bot.use(createConversation(setNewProject));
 bot.command("cancel", async (ctx) => {
     await ctx.conversation.exit();
     await ctx.reply("Выход из диалога");
-    await erasePrevMessages(ctx, 2)
-    await ctx.reply('Доступные действия', {
-        reply_markup: startKeyboard,
-    })
+    await erasePrevMessages(ctx, initMessageId)
 });
 
 bot.use(async (ctx, next) => {
-    await recordUserInteraction(db, ctx.from.id)
+    if (!isAdmin(ctx.from.id, process.env.ADMIN_ID) || process.env.DEBUG_MODE) {
+        await recordUserInteraction(db, ctx.from.id)
+    }
+
     return next()
 })
 
@@ -170,46 +165,19 @@ async function getProjectsKeyboard(ctx) {
 
 // Wait for click events with specific callback data.
 bot.callbackQuery("projects", async (ctx) => {
-    await erasePrevMessages(ctx)
+    await erasePrevMessages(ctx, initMessageId)
     await getProjectsKeyboard(ctx)
     await ctx.answerCallbackQuery()
 });
 
 bot.callbackQuery("add_project", async (ctx) => {
-    await erasePrevMessages(ctx)
+    await erasePrevMessages(ctx, initMessageId)
     await ctx.conversation.enter("setNewProject")
     await ctx.answerCallbackQuery()
 });
 
-bot.command('menu', async (ctx) => {
-    await erasePrevMessages(ctx)
-    await ctx.reply('Доступные действия', {
-        reply_markup: startKeyboard,
-    })
-})
-
-bot.callbackQuery("menu", async (ctx) => {
-    await erasePrevMessages(ctx)
-    await ctx.reply('Доступные действия', {
-        reply_markup: startKeyboard,
-    })
-    await ctx.answerCallbackQuery()
-});
-
 bot.callbackQuery('clear_chat', async (ctx) => {
-    let last = await ctx.reply('deleting');
-    await erasePrevMessages(ctx, last.message_id - 2)
-
-    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_047.webp?v=1693991402')
-    await ctx.reply('Buenos dias, amigo! Я - авторский бот для упрощения жизни будущих криптомиллионеров')
-    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
-    await ctx.reply('📲 Тапалки - коллекция приложений с листингом или эйрдропом')
-    await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
-    await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
-    await ctx.reply('👇', {
-        reply_markup: startKeyboard,
-    })
-    await ctx.answerCallbackQuery()
+    await erasePrevMessages(ctx, initMessageId)
 });
 
 bot.callbackQuery("comments", async (ctx) => {

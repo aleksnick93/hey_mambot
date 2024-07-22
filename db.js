@@ -1,7 +1,13 @@
 async function createTables(db) {
     await db.exec(`CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY,
-      run_count INTEGER DEFAULT 0,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username VARCHAR(100) NOT NULL,
+      first_name VARCHAR(100) DEFAULT '' NOT NULL,
+      language_code VARCHAR(5) DEFAULT 'ru' NOT NULL,
+      run_count INTEGER DEFAULT 0 NOT NULL,
+      init_message_id INTEGER DEFAULT 1 NOT NULL,
+      is_bot BOOLEAN DEFAULT FALSE NOT NULL,
+      is_premium BOOLEAN DEFAULT FALSE NOT NULL,
       last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`)
 
