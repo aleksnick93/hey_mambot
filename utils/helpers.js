@@ -29,7 +29,7 @@ function createKeyboard(items, type, isAdmin) {
       keyboard.text(items[idx].title, items[idx].sys_name)
     }
 
-    if (idx % 3 === 0) keyboard.row()
+    if (idx % 2 === 0) keyboard.row()
   }
   keyboard.row()
   if (isAdmin) {
@@ -51,7 +51,8 @@ async function erasePrevMessages(ctx, messageCount = 1, messageStartId = 1) {
     try {
       await ctx.api.deleteMessage(ctx.chat.id, idx);
     } catch (e) {
-      console.error(e);
+      console.error(e)
+      break
     }
   }
 }
@@ -88,4 +89,4 @@ async function getMessages(db, replied = null) {
   return await db.all(query, replied !== null ? [replied] : [])
 }
 
-module.exports = { updateUserData, recordUserInteraction, isAdmin, createKeyboard, erasePrevMessages, getUsageStats, getMessages}
+module.exports = { updateUserData, getInitMessageId, recordUserInteraction, isAdmin, createKeyboard, erasePrevMessages, getUsageStats, getMessages}

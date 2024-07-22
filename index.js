@@ -59,7 +59,7 @@ bot.command('start', async (ctx) => {
     // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_047.webp?v=1693991402')
     await ctx.reply('Buenos dias, amigo! Я - авторский бот для упрощения жизни будущих криптомиллионеров')
     // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
-    await ctx.reply('📲 Тапалки - коллекция криптоигр с листингом или эйрдропом')
+    await ctx.reply('📲 Тапалки - коллекция приложений с листингом или эйрдропом')
     await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
     await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
     await ctx.reply('👇', {
@@ -199,7 +199,14 @@ bot.callbackQuery("menu", async (ctx) => {
 bot.callbackQuery('clear_chat', async (ctx) => {
     let last = await ctx.reply('deleting');
     await erasePrevMessages(ctx, last.message_id - 2)
-    await ctx.reply('Доступные действия', {
+
+    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_047.webp?v=1693991402')
+    await ctx.reply('Buenos dias, amigo! Я - авторский бот для упрощения жизни будущих криптомиллионеров')
+    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
+    await ctx.reply('📲 Тапалки - коллекция приложений с листингом или эйрдропом')
+    await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
+    await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
+    await ctx.reply('👇', {
         reply_markup: startKeyboard,
     })
     await ctx.answerCallbackQuery()
