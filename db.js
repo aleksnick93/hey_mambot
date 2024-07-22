@@ -53,10 +53,10 @@ async function createTables(db) {
                       project_id      integer not null
                         constraint FK_project
                           references projects (id),
-                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
                       constraint PK
                         primary key (user_id, project_id)
-                 )`)
+  )`)
 
     await db.exec(`CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +67,7 @@ async function createTables(db) {
       replied INTEGER DEFAULT 0,
       first_name TEXT,
       username TEXT,
-      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`)
 }
 
@@ -84,7 +84,7 @@ async function addProject(db, title, refLink, img) {
 }
 
 async function getProjects(db) {
-  await db.get(`SELECT p.id, p.title, p.title_short, p.link, p.link || '?' || p.ref_key || '=' || p.ref_id AS p.full_link
+  await db.get(`SELECT p.id, p.title, p.title_short, p.link, (p.link || '?' || p.ref_key || '=' || p.ref_id) AS full_link 
                 FROM projects p 
                 ORDER BY p.sort, p.id`)
 }
