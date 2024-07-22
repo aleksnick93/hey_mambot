@@ -10,7 +10,7 @@ const sqlite3 = require('sqlite3').verbose()
 const { open } = require('sqlite')
 const { createTables, getProjects, recordProjectRequest, addProject} = require("./db")
 const { logger } = require('./utils/logger')
-const { updateUserData, recordUserInteraction, isAdmin, createKeyboard, getUsageStats, getMessages } = require('./utils/helpers')
+const { updateUserData, recordUserInteraction, isAdmin, createKeyboard, getUsageStats, getMessages, erasePrevMessages} = require('./utils/helpers')
 
 const bot = new Bot(process.env.BOT_API_KEY),
       debugMode = process.env.DEBUG_MODE
@@ -32,8 +32,10 @@ const startKeyboard = new InlineKeyboard()
     .row()
     .text('🙋‍♂️ Предложка', 'comments')
     .row()
+    .text('Очистить чат [DEBUG]', 'clear_chat')
+    .row()
 
-let db, projects
+let db
 (async () => {
     const dbPath = './data/hey_mambot.db'
 
@@ -92,12 +94,17 @@ async function setNewProject(conversation, ctx) {
     await ctx.reply(`Добавим новый проект`)
     await ctx.reply(`Как называется?`)
     const projectTitleContext = await conversation.waitFor('message:text')
+    await erasePrevMessages(ctx)
 
     await ctx.reply(`Реферальная ссылка`)
     const projectRefLinkContext = await conversation.waitFor('message:entities:url')
+    await erasePrevMessages(ctx)
 
     await addProject(db, projectTitleContext.message?.text, projectRefLinkContext.message?.text, '')
     await ctx.reply(`Проект добавлен`)
+    await erasePrevMessages(ctx, 2)
+
+    await getProjectsKeyboard(ctx)
 }
 
 bot.use(createConversation(setNewProject));
@@ -106,6 +113,10 @@ bot.use(createConversation(setNewProject));
 bot.command("cancel", async (ctx) => {
     await ctx.conversation.exit();
     await ctx.reply("Выход из диалога");
+    await erasePrevMessages(ctx, 2)
+    await ctx.reply('Доступные действия', {
+        reply_markup: startKeyboard,
+    })
 });
 
 bot.use(async (ctx, next) => {
@@ -147,9 +158,7 @@ bot.use(async (ctx, next) => {
 //
 // handleButtonClicks(projects, recordProjectRequest, 'projects')
 
-// Wait for click events with specific callback data.
-bot.callbackQuery("projects", async (ctx) => {
-    await ctx.api.deleteMessage(ctx.chat.id, ctx.message_id);
+async function getProjectsKeyboard(ctx) {
     const
         projects = await getProjects(db),
         hasAdminRights = isAdmin(ctx.from.id, process.env.ADMIN_ID),
@@ -157,25 +166,30 @@ bot.callbackQuery("projects", async (ctx) => {
     await ctx.reply('Доступные приложения', {
         reply_markup: projectKeyboard,
     })
+}
 
+// Wait for click events with specific callback data.
+bot.callbackQuery("projects", async (ctx) => {
+    await erasePrevMessages(ctx)
+    await getProjectsKeyboard(ctx)
     await ctx.answerCallbackQuery()
 });
 
 bot.callbackQuery("add_project", async (ctx) => {
-    await ctx.api.deleteMessage(ctx.chat.id, ctx.message_id);
+    await erasePrevMessages(ctx)
     await ctx.conversation.enter("setNewProject")
     await ctx.answerCallbackQuery()
 });
 
 bot.command('menu', async (ctx) => {
-    await ctx.api.deleteMessage(ctx.chat.id, ctx.message_id);
-    await ctx.reply('Выберите действие:', {
+    await erasePrevMessages(ctx)
+    await ctx.reply('Доступные действия', {
         reply_markup: startKeyboard,
     })
 })
 
 bot.callbackQuery("menu", async (ctx) => {
-    await ctx.api.deleteMessage(ctx.chat.id, ctx.message_id);
+    await erasePrevMessages(ctx)
     await ctx.reply('Доступные действия', {
         reply_markup: startKeyboard,
     })
@@ -183,17 +197,12 @@ bot.callbackQuery("menu", async (ctx) => {
 });
 
 bot.callbackQuery('clear_chat', async (ctx) => {
-    let res = await ctx.reply('deleting');
-    // console.log(res);
-    for(let i = res.message_id; i > 1; i--) {
-        console.log(`chat_id: ${ctx.chat.id}, message_id: ${i}`);
-        try {
-            let res = await ctx.api.deleteMessage(ctx.chat.id, i);
-            console.log(res);
-        } catch (e) {
-            console.error(e);
-        }
-    }
+    let last = await ctx.reply('deleting');
+    await erasePrevMessages(ctx, last.message_id - 2)
+    await ctx.reply('Доступные действия', {
+        reply_markup: startKeyboard,
+    })
+    await ctx.answerCallbackQuery()
 });
 
 bot.callbackQuery("comments", async (ctx) => {

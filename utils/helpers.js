@@ -41,6 +41,21 @@ function createKeyboard(items, type, isAdmin) {
   return keyboard;
 }
 
+async function erasePrevMessages(ctx, messageCount = 1, messageStartId = 1) {
+  console.log(ctx)
+  let lastCtx = await ctx.reply('deleting');
+  for(let removeCount = 0, idx = lastCtx.message_id;
+      removeCount <= messageCount + 1 && idx > messageStartId;
+      idx--, removeCount++) {
+    console.log(`chat_id: ${ctx.chat.id}, message_id: ${idx}`);
+    try {
+      await ctx.api.deleteMessage(ctx.chat.id, idx);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
 // Функция для получения статистики использования бота
 async function getUsageStats(db) {
   const totalStarts = await db.get(`SELECT SUM(run_count) as total FROM users`)
@@ -73,4 +88,4 @@ async function getMessages(db, replied = null) {
   return await db.all(query, replied !== null ? [replied] : [])
 }
 
-module.exports = { updateUserData, recordUserInteraction, isAdmin, createKeyboard, getUsageStats, getMessages}
+module.exports = { updateUserData, recordUserInteraction, isAdmin, createKeyboard, erasePrevMessages, getUsageStats, getMessages}
