@@ -176,6 +176,10 @@ bot.callbackQuery("add_project", async (ctx) => {
     await ctx.answerCallbackQuery()
 });
 
+bot.callbackQuery("menu", async (ctx) => {
+    await erasePrevMessages(ctx, initMessageId)
+});
+
 bot.callbackQuery('clear_chat', async (ctx) => {
     await erasePrevMessages(ctx, initMessageId)
 });
