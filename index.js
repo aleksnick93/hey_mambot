@@ -93,11 +93,11 @@ async function setNewProject(conversation, ctx) {
     await ctx.reply(`Добавим новый проект`)
     await ctx.reply(`Как называется?`)
     const projectTitleContext = await conversation.waitFor('message:text')
-    // await erasePrevMessages(ctx)
+    await erasePrevMessages(ctx)
 
-    await ctx.editMessageText(`Реферальная ссылка`)
+    await ctx.reply(`Реферальная ссылка`)
     const projectRefLinkContext = await conversation.waitFor('message:entities:url')
-    // await erasePrevMessages(ctx)
+    await erasePrevMessages(ctx)
 
     await addProject(db, projectTitleContext.message?.text, projectRefLinkContext.message?.text, '')
     await ctx.reply(`Проект добавлен`)
