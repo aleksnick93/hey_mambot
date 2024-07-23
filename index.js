@@ -28,12 +28,12 @@ bot.api.setMyCommands([
 ]);
 
 const startKeyboard = new InlineKeyboard()
-    .text('📲 Тапалки', 'projects')
+    .text('📲 Приложения', 'projects')
     .row()
-    .text('🙋‍♂️ Предложка', 'comments')
+    .text('🙋‍♂️ Идеи', 'comments')
     .row()
-    .text('Очистить чат [DEBUG]', 'clear_chat')
-    .row()
+    // .text('Очистить чат [DEBUG]', 'clear_chat')
+    // .row()
 
 let db,initMessageId
 (async () => {
@@ -57,10 +57,14 @@ bot.command('start', async (ctx) => {
     console.log(ctx.from)
     // logger.info(`User ${ctx.from.id} started the bot`)
     await insertUser(db, ctx.from.id, ctx.from.username, ctx.from.first_name, ctx.from.language_code, ctx.from.is_bot, ctx.from.is_premium)
-    await ctx.reply('Buenos dias, amigo! Я - авторский бот для упрощения жизни будущих криптомиллионеров')
-    await ctx.reply('📲 Тапалки - коллекция приложений с листингом или эйрдропом')
-    await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
-    await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
+    // await updateUserData(db, ctx.from.id)
+    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_047.webp?v=1693991402')
+    await ctx.reply('Buenos dias, amigo!\n' +
+        'Я - авторский бот для упрощения жизни будущих криптомиллионеров\n\n' +
+        '[📲 Приложения] Всё в одном, коллекция криптоигр в телеграмм с листингом или эйрдропом\n' +
+        '[🙋‍♂️ Идеи] Предложения по улучшению бота, обратная связь и комментарии автору\n' +
+        '🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
+    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
     let initMsg = await ctx.reply('👇', {
         reply_markup: startKeyboard,
     })
@@ -89,11 +93,11 @@ async function setNewProject(conversation, ctx) {
     await ctx.reply(`Добавим новый проект`)
     await ctx.reply(`Как называется?`)
     const projectTitleContext = await conversation.waitFor('message:text')
-    await erasePrevMessages(ctx)
+    // await erasePrevMessages(ctx)
 
-    await ctx.reply(`Реферальная ссылка`)
+    await ctx.editMessageText(`Реферальная ссылка`)
     const projectRefLinkContext = await conversation.waitFor('message:entities:url')
-    await erasePrevMessages(ctx)
+    // await erasePrevMessages(ctx)
 
     await addProject(db, projectTitleContext.message?.text, projectRefLinkContext.message?.text, '')
     await ctx.reply(`Проект добавлен`)
