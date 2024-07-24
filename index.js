@@ -59,14 +59,16 @@ bot.command('start', async (ctx) => {
     await insertUser(db, ctx.from.id, ctx.from.username, ctx.from.first_name, ctx.from.language_code, ctx.from.is_bot, ctx.from.is_premium)
     // await updateUserData(db, ctx.from.id)
     // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_047.webp?v=1693991402')
-    await ctx.reply('Buenos dias, amigo!\n' +
+    let initMsg = await ctx.reply('Buenos dias, amigo!\n' +
         'Я - авторский бот для упрощения жизни будущих криптомиллионеров\n\n' +
         '[📲 Приложения]\nВсё в одном, коллекция криптоигр в телеграмм с листингом или эйрдропом\n\n' +
-        '[🙋‍♂️ Идеи]\nПредложения по улучшению бота, обратная связь и комментарии автору. Возможна отправка текста, фото, видео, аудио/видеосообщений и файлов')
-    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
-    let initMsg = await ctx.reply('👇', {
+        '[🙋‍♂️ Идеи]\nПредложения по улучшению бота, обратная связь и комментарии автору. Возможна отправка текста, фото, видео, аудио/видеосообщений и файлов', {
         reply_markup: startKeyboard,
     })
+    // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
+    // let initMsg = await ctx.reply('👇', {
+    //     reply_markup: startKeyboard,
+    // })
 
     initMessageId = initMsg.message_id
     await updateUser(db, ctx.from.id, ctx.from.username, initMessageId)
