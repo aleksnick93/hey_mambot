@@ -20,6 +20,7 @@ async function createTables(db) {
         ref_key VARCHAR(50)  NOT NULL,
         ref_id  VARCHAR(30),
         sort INTEGER DEFAULT 1 NOT NULL,
+        is_active BOOLEAN DEFAULT TRUE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
     )`)
 
@@ -90,9 +91,9 @@ async function addProject(db, title, refLink, img) {
 }
 
 async function getProjects(db) {
-  return await db.all(`SELECT p.id, p.title, p.title_short, p.link, (p.link || '?' || p.ref_key || '=' || p.ref_id) AS full_link 
+  return await db.all(`SELECT p.id, p.title, p.title_short, p.is_active, p.link, (p.link || '?' || p.ref_key || '=' || p.ref_id) AS full_link 
                 FROM projects p 
-                ORDER BY p.sort, p.id`)
+                ORDER BY p.is_active DESC, p.sort, p.title`)
 }
 
 // Функция для записи запроса на промокод

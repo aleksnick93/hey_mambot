@@ -31,7 +31,8 @@ function createKeyboard(items, type, isAdmin) {
   console.log(items, buttonCount)
   for (let idx = 0; idx < buttonCount; idx++) {
     if (type === 'projects') {
-      keyboard.url(items[idx].title, items[idx].full_link)
+      let project_state = items[idx].is_active ? `[✅]` : `[🛑]`
+      keyboard.url(project_state + ` ` + items[idx].title, items[idx].full_link)
     } else {
       keyboard.text(items[idx].title, items[idx].sys_name)
     }
