@@ -393,34 +393,35 @@ bot.on('message', async (ctx) => {
         let mediaType = ''
         let mediaId = ''
 
-        if (ctx.message.text) {
-            await db.run(`INSERT INTO messages (user_id, message, first_name, username) VALUES (?, ?, ?, ?)`,
-                [ctx.from.id, ctx.message.text, ctx.from.first_name, ctx.from.username])
-        } else {
-            if (ctx.message.photo) {
-                const photo = ctx.message.photo.pop()
-                mediaType = 'photo'
-                mediaId = photo.file_id
-            } else if (ctx.message.video) {
-                mediaType = 'video'
-                mediaId = ctx.message.video.file_id
-            } else if (ctx.message.document) {
-                mediaType = 'document'
-                mediaId = ctx.message.document.file_id
-            } else if (ctx.message.audio) {
-                mediaType = 'audio'
-                mediaId = ctx.message.audio.file_id
-            } else if (ctx.message.voice) {
-                mediaType = 'voice'
-                mediaId = ctx.message.voice.file_id
-            } else if (ctx.message.video_note) {
-                mediaType = 'video_note'
-                mediaId = ctx.message.video_note.file_id
-            }
+        // if (ctx.message.text) {
+        //     await db.run(`INSERT INTO messages (user_id, message, first_name, username) VALUES (?, ?, ?, ?)`,
+        //         [ctx.from.id, ctx.message.text, ctx.from.first_name, ctx.from.username])
+        // }
 
-            await db.run(`INSERT INTO messages (user_id, media_type, media_id, first_name, username) VALUES (?, ?, ?, ?, ?)`,
-                [ctx.from.id, mediaType, mediaId, ctx.from.first_name, ctx.from.username])
+        if (ctx.message.photo) {
+            const photo = ctx.message.photo.pop()
+            mediaType = 'photo'
+            mediaId = photo.file_id
+        } else if (ctx.message.video) {
+            mediaType = 'video'
+            mediaId = ctx.message.video.file_id
+        } else if (ctx.message.document) {
+            mediaType = 'document'
+            mediaId = ctx.message.document.file_id
+        } else if (ctx.message.audio) {
+            mediaType = 'audio'
+            mediaId = ctx.message.audio.file_id
+        } else if (ctx.message.voice) {
+            mediaType = 'voice'
+            mediaId = ctx.message.voice.file_id
+        } else if (ctx.message.video_note) {
+            mediaType = 'video_note'
+            mediaId = ctx.message.video_note.file_id
         }
+
+        let text = ctx.message.text ?? ''
+        await db.run(`INSERT INTO messages (user_id, message, media_type, media_id, first_name, username) VALUES (?, ?, ?, ?, ?)`,
+            [ctx.from.id, text, mediaType, mediaId, ctx.from.first_name, ctx.from.username])
 
         await ctx.reply('Ваше сообщение успешно отправлено автору бота')
         suggestionClicked[fromId] = false
