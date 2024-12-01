@@ -10,5 +10,5 @@ build:
 run:
   scriptName: index.js
   command: npm run start
-  persistenceMount: /data
+  persistenceMount: data
   containerPort: 80
