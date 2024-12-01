@@ -5,9 +5,9 @@ meta:
     name: npm
     version: 20
 build:
-  skip: true
   artifacts:
     '*': /
+  additionalCommands: cd && ls
 run:
   scriptName: index.js
   command: npm run start
