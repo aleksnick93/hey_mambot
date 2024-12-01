@@ -10,5 +10,5 @@ build:
 run:
   scriptName: index.js
   command: npm run start
-  persistenceMount: ./data/hey_mambot.db
+  persistenceMount: data/hey_mambot.db
   containerPort: 80
