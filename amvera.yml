@@ -1,10 +1,11 @@
+---
 meta:
   environment: node
   toolchain:
     name: npm
     version: 20
 build:
-  skip: false
+  skip: true
   artifacts:
     '*': /
 run:
