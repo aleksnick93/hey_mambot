@@ -13,6 +13,7 @@ const { logger } = require('./utils/logger')
 const { insertUser, updateUser, recordUserInteraction, isAdmin,
         createKeyboard, getUsageStats, getMessages, erasePrevMessages
 } = require('./utils/helpers')
+const { fillForm } = require('./utils/selenium')
 
 const bot = new Bot(process.env.BOT_API_KEY),
       debugMode = process.env.DEBUG_MODE
@@ -31,6 +32,8 @@ const startKeyboard = new InlineKeyboard()
     .text('📲 Приложения', 'projects')
     .row()
     .text('🙋‍♂️ Идеи', 'comments')
+    .row()
+    .text('Метрики', 'day_report')
     .row()
     // .text('Очистить чат [DEBUG]', 'clear_chat')
     // .row()
@@ -73,6 +76,46 @@ bot.command('start', async (ctx) => {
     initMessageId = initMsg.message_id
     await updateUser(db, ctx.from.id, ctx.from.username, initMessageId)
 })
+
+async function sendDayReport(conversation, ctx) {
+    await ctx.reply(`Отправка метрик наставничества`)
+    let email = process.env.ADMIN_EMAIL
+    if (!isAdmin(ctx.from.id, process.env.ADMIN_ID)) {
+        await ctx.reply(`Уточните email`)
+        let emailContext = await conversation.waitFor('message:text')
+        email = emailContext.message?.text
+    }
+
+    await ctx.reply(`Уточните показатели через пробел: звонки, заказы, прибыль и выручка. По умолчанию 0`)
+    const metricsContext = await conversation.waitFor('message:text')
+    const metrics = metricsContext.message?.text
+    console.log(metrics)
+    const metricsArr = metrics.split(' ')
+    let calls = metricsArr[0],
+        orders = metricsArr[1] ?? 0,
+        payments = metricsArr[2] ?? 0,
+        profit = metricsArr[3] ?? 0
+
+    // await erasePrevMessages(ctx)
+    await fillForm(email, calls, orders, payments, profit)
+    await ctx.reply(`Метрики отправлены!`)
+}
+
+bot.use(createConversation(sendDayReport));
+
+
+bot.callbackQuery('day_report', async (ctx) => {
+    await ctx.conversation.enter("sendDayReport")
+    await ctx.answerCallbackQuery()
+})
+
+
+// bot.command('info', async (ctx) => {
+//     // await bot.sendSticker(ctx.chatId, 'https://data.chpic.su/stickers/c/cockroach_vk/cockroach_vk_018.webp?v=1693991402')
+//     await ctx.reply('📲 Тапалки - коллекция криптоигр с листингом или эйрдропом')
+//     await ctx.reply('🙋‍♂️ Предложка - тут ты можешь направить мне сообщение с вопросом или предложить идеи по улучшению сервиса')
+//     await ctx.reply('🟢 Поддерживает отправку сообщений, фото, видео, аудио/видеосообщений, файлов')
+// })
 
 bot.command('admin', async (ctx) => {
     if (!isAdmin(ctx.from.id, process.env.ADMIN_ID)) return
