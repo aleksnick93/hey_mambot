@@ -3,7 +3,7 @@ meta:
   environment: node
   toolchain:
     name: npm
-    version: 20
+    version: 20.15
 build:
   artifacts:
     '*': /
