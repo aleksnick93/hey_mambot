@@ -3,13 +3,13 @@ meta:
   environment: node
   toolchain:
     name: npm
-    version: 20
+    version: 20.15
 build:
-  skip: true
   artifacts:
     '*': /
+  skip: true
 run:
   scriptName: index.js
   command: npm run start
-  persistenceMount: data/hey_mambot.db
+  persistenceMount: /data/hey_mambot.db
   containerPort: 80
