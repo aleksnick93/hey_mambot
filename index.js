@@ -40,7 +40,7 @@ const startKeyboard = new InlineKeyboard()
 
 let db,initMessageId
 (async () => {
-    const dbPath = 'data/hey_mambot.db'
+    const dbPath = '/data/hey_mambot.db'
 
     const dbExists = fs.existsSync(dbPath)
 
